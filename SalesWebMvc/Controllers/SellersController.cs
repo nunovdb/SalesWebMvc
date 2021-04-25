@@ -16,7 +16,7 @@ namespace SalesWebMvc.Controllers
         private readonly SellerService _selllerService;
         private readonly DepartmentService _departmentService;
 
-        public SellersController(SellerService sellerService, DepartmentService departmentService) 
+        public SellersController(SellerService sellerService, DepartmentService departmentService)
         {
             _selllerService = sellerService;
             _departmentService = departmentService;
@@ -24,22 +24,22 @@ namespace SalesWebMvc.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var list = await _selllerService.FindAllAsync();          
+            var list = await _selllerService.FindAllAsync();
             return View(list);
         }
 
         //GET
-        public async Task<IActionResult> Create() 
+        public async Task<IActionResult> Create()
         {
             var departments = await _departmentService.FindAllAsync();
-            var viewModel = new SellerFormViewModel { Departments = departments };            
+            var viewModel = new SellerFormViewModel { Departments = departments };
 
-            return View(viewModel);                
+            return View(viewModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Seller seller) 
+        public async Task<IActionResult> Create(Seller seller)
         {
             if (!ModelState.IsValid)
             {
@@ -51,11 +51,11 @@ namespace SalesWebMvc.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Delete(int? id) 
+        public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null) 
+            if (id == null)
             {
-                return RedirectToAction(nameof(Error), new { Message = "Id not provided"});
+                return RedirectToAction(nameof(Error), new { Message = "Id not provided" });
             }
 
             var obj = await _selllerService.FindByIdAsync(id.Value);
@@ -71,9 +71,15 @@ namespace SalesWebMvc.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            await _selllerService.RemoveAsync(id);
-            return RedirectToAction(nameof(Index));
-
+            try
+            {
+                await _selllerService.RemoveAsync(id);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (IntegrityException e)
+            {
+                return RedirectToAction(nameof(Error), new { Message = "Can't delete seller because he/she has sales" });
+            }
         }
 
         public async Task<IActionResult> Details(int? id)
@@ -106,7 +112,7 @@ namespace SalesWebMvc.Controllers
             }
 
             List<Department> departments = await _departmentService.FindAllAsync();
-            SellerFormViewModel viewModel = new SellerFormViewModel{ Seller = obj, Departments = departments};
+            SellerFormViewModel viewModel = new SellerFormViewModel { Seller = obj, Departments = departments };
 
             return View(viewModel);
         }
@@ -141,7 +147,7 @@ namespace SalesWebMvc.Controllers
             }
         }
 
-        public IActionResult Error(string message) 
+        public IActionResult Error(string message)
         {
             var viewModel = new ErrorViewModel
             {
